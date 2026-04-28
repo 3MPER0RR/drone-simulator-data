@@ -121,7 +121,7 @@ python mavlink_bridge.py --connect /dev/ttyUSB0
 
 ## Opening the Dashboard in the Browser
 
-1. Open `drone-telemetry-v2.html` in Chrome, Edge, or Firefox
+1. Open `drone-simulator-data.html` in Chrome, Edge, or Firefox
 2. In the top-right corner, click the **REAL** button
 3. A dialog will appear — leave the address as `ws://localhost:8765` and click **CONNECT**
 4. The indicator dot will turn green and you will see live data from the simulator
