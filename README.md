@@ -10,14 +10,14 @@ ArduPilot SITL (simulator)
 
 ---
 
-## Part 1 — Installing the Python Bridge
+## Installing the Python Bridge
 
 ### Requirements
 
 - Python 3.8 or higher
 - pip
 
-### 1.1 Install dependencies
+### Install dependencies
 
 Open a terminal (PowerShell on Windows, Terminal on Mac/Linux) and run:
 
@@ -25,7 +25,7 @@ Open a terminal (PowerShell on Windows, Terminal on Mac/Linux) and run:
 pip install pymavlink websockets
 ```
 
-### 1.2 Verify the installation
+### Verify the installation
 
 ```bash
 python -c "import pymavlink, websockets; print('OK')"
@@ -35,9 +35,9 @@ If you see `OK`, the installation was successful.
 
 ---
 
-## Part 2 — Installing ArduPilot SITL
+## Installing ArduPilot SITL
 
-### Option A — Windows (recommended for beginners)
+### Windows
 
 **Install WSL2** (Windows Subsystem for Linux), then open Ubuntu from WSL and type:
 
@@ -59,7 +59,7 @@ sim_vehicle.py -v ArduCopter --console --map
 
 SITL will start sending MAVLink data on UDP port 14550 of your machine.
 
-### Option B — Mac
+### Mac
 
 ```bash
 brew install python3
@@ -69,11 +69,11 @@ cd ardupilot && git submodule update --init --recursive
 sim_vehicle.py -v ArduCopter --console --map
 ```
 
-### Option C — Linux (Ubuntu/Debian)
+### Linux (Ubuntu/Debian)
 
 Same procedure as WSL above, no need for WSL.
 
-### Option D — QGroundControl (easiest, no terminal required)
+### QGroundControl (easiest, no terminal required)
 
 1. Download QGroundControl from https://qgroundcontrol.com
 2. Open it → go to **Vehicle Setup → Firmware**
@@ -83,7 +83,7 @@ Same procedure as WSL above, no need for WSL.
 
 ---
 
-## Part 3 — Starting the Bridge
+## Starting the Bridge
 
 Once SITL is running, open a **second terminal** and start the bridge:
 
@@ -120,7 +120,7 @@ python mavlink_bridge.py --connect /dev/ttyUSB0
 
 ---
 
-## Part 4 — Opening the Dashboard in the Browser
+## Opening the Dashboard in the Browser
 
 1. Open `drone-telemetry-v2.html` in Chrome, Edge, or Firefox
 2. In the top-right corner, click the **REAL** button
@@ -131,7 +131,7 @@ If you only want to use the built-in simulator without the bridge, leave **SIM**
 
 ---
 
-## Part 5 — Connecting a Real Drone
+## Connecting a Real Drone
 
 ### DJI Tello
 
