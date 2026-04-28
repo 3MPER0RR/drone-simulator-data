@@ -5,7 +5,7 @@ ArduPilot SITL (simulator)
         ↓  UDP :14550
   mavlink_bridge.py
         ↓  WebSocket :8765
-  drone-telemetry-v2.html  ←  open in browser
+  drone-simulator-data.html  ←  open in browser
 ```
 
 ---
@@ -15,7 +15,6 @@ ArduPilot SITL (simulator)
 ### Requirements
 
 - Python 3.8 or higher
-- pip
 
 ### Install dependencies
 
