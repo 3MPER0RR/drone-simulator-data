@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Drone Simulator Data</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f5f3;
+    --surface: #ffffff;
+    --surface2: #fafaf9;
+    --border: #e4e4e0;
+    --border2: #d0d0ca;
+    --text-primary: #1a1a18;
+    --text-secondary: #6b6b63;
+    --text-muted: #a0a09a;
+    --accent: #1d4ed8;
+    --accent-light: #eff6ff;
+    --accent-dim: #93c5fd;
+    --green: #16a34a;
+    --green-light: #f0fdf4;
+    --amber: #d97706;
+    --amber-light: #fffbeb;
+    --red: #dc2626;
+    --red-light: #fef2f2;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow: 0 4px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+    --radius: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 28px; height: 28px;
+    background: var(--accent);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .logo-icon svg { width: 16px; height: 16px; fill: white; }
+
+  .logo-text {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.2px;
+  }
+
+  .logo-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 400;
+    margin-left: 2px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .source-toggle {
+    display: flex;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px;
+    gap: 2px;
+  }
+
+  .source-btn {
+    padding: 4px 14px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.15s, color 0.15s;
+    letter-spacing: 0.2px;
+  }
+
+  .source-btn.active {
+    background: var(--surface);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .status-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    background: var(--green-light);
+    color: var(--green);
+    border: 1px solid #bbf7d0;
+  }
+
+  .status-pill.warn { background: var(--amber-light); color: var(--amber); border-color: #fde68a; }
+  .status-pill.error { background: var(--red-light); color: var(--red); border-color: #fecaca; }
+
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .sys-time {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  /* ── LAYOUT ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 300px 1fr 260px;
+    gap: 16px;
+    padding: 16px;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .card-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--accent-light);
+    color: var(--accent);
+  }
+
+  .badge.green { background: var(--green-light); color: var(--green); }
+  .badge.amber { background: var(--amber-light); color: var(--amber); }
+  .badge.red { background: var(--red-light); color: var(--red); }
+
+  /* ── GPS ── */
+  .gps-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    margin: 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .gps-field {
+    background: var(--surface);
+    padding: 10px 14px;
+  }
+
+  .field-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 4px;
+  }
+
+  .field-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .field-value.large {
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--accent);
+  }
+
+  .gps-meta {
+    padding: 0 16px 12px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .gps-meta span { color: var(--text-secondary); font-weight: 500; }
+
+  /* ── VELOCITY ── */
+  .vel-body { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+
+  .vel-row { display: flex; align-items: center; gap: 10px; }
+
+  .vel-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    width: 22px;
+    letter-spacing: 0.5px;
+  }
+
+  .vel-track {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .vel-fill {
+    position: absolute;
+    top: 0; bottom: 0;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: left 0.1s, width 0.1s;
+  }
+
+  .vel-fill.vy { background: var(--green); }
+  .vel-fill.vz { background: var(--amber); }
+
+  .vel-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-secondary);
+    width: 62px;
+    text-align: right;
+  }
+
+  .vel-total {
+    margin-top: 4px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .vel-total-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  /* ── BATTERY ── */
+  .bat-body { padding: 14px 16px; }
+
+  .bat-track {
+    height: 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .bat-fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 4px;
+    transition: width 0.5s, background 0.5s;
+  }
+
+  .bat-pct-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+  }
+
+  .bat-pct {
+    font-family: 'DM Mono', monospace;
+    font-size: 28px;
+    font-weight: 400;
+    color: var(--text-primary);
+    line-height: 1;
+  }
+
+  .bat-pct-label { font-size: 11px; color: var(--text-muted); }
+
+  .bat-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .bat-stat {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+  }
+
+  .bat-stat .field-label { margin-bottom: 2px; }
+  .bat-stat .field-value { font-size: 13px; color: var(--text-primary); }
+
+  /* ── ATTITUDE ── */
+  .att-body { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+
+  .att-row { display: flex; align-items: center; gap: 10px; }
+
+  .att-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    width: 38px;
+    letter-spacing: 0.5px;
+  }
+
+  .att-track {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .att-fill {
+    position: absolute;
+    top: 0; bottom: 0;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: left 0.1s, width 0.1s;
+  }
+
+  .att-fill.pitch { background: var(--green); }
+  .att-fill.yaw { background: var(--amber); }
+
+  .att-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-secondary);
+    width: 50px;
+    text-align: right;
+  }
+
+  .heading-row {
+    margin-top: 4px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .heading-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  /* ── HORIZON ── */
+  .horizon-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+  }
+
+  canvas#horizon {
+    border-radius: 50%;
+    border: 1px solid var(--border);
+  }
+
+  /* ── MAP ── */
+  .map-wrap {
+    position: relative;
+    height: 300px;
+    margin: 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--surface2);
+  }
+
+  canvas#map { width: 100%; height: 100%; }
+
+  .map-label {
+    position: absolute;
+    top: 8px; left: 8px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+
+  /* ── ALT CHART ── */
+  .chart-wrap {
+    padding: 8px 16px 16px;
+    height: 110px;
+  }
+
+  canvas#altChart { width: 100%; height: 100%; }
+
+  /* ── SYSTEM PANEL ── */
+  .sys-body { padding: 4px 0; }
+
+  .sys-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+
+  .sys-row:last-child { border-bottom: none; }
+
+  .sys-key { color: var(--text-secondary); font-weight: 500; }
+
+  .sys-val {
+    font-family: 'DM Mono', monospace;
+    color: var(--text-primary);
+    font-size: 12px;
+  }
+
+  .sys-val.armed { color: var(--red); font-weight: 600; }
+  .sys-val.disarmed { color: var(--green); }
+  .sys-val.accent { color: var(--accent); }
+
+  .signal-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 12px;
+  }
+
+  .signal-bar {
+    width: 3px;
+    background: var(--border2);
+    border-radius: 1px;
+    transition: background 0.3s;
+  }
+
+  .signal-bar.active { background: var(--green); }
+
+  /* ── STATUS BAR ── */
+  .statusbar {
+    grid-column: 1 / -1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    font-size: 11px;
+    color: var(--text-muted);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .sb-item { display: flex; align-items: center; gap: 6px; }
+  .sb-val { font-family: 'DM Mono', monospace; color: var(--text-secondary); font-weight: 500; }
+  .sb-sep { width: 1px; height: 14px; background: var(--border); }
+
+  /* ── ALERT ── */
+  .alert-bar {
+    display: none;
+    grid-column: 1 / -1;
+    background: var(--red-light);
+    border: 1px solid #fecaca;
+    border-radius: var(--radius);
+    padding: 10px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--red);
+    align-items: center;
+    gap: 8px;
+  }
+
+  .alert-bar.visible { display: flex; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(2px);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.visible { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    width: 400px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+  }
+
+  .modal h2 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+
+  .modal p {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 18px;
+    line-height: 1.6;
+  }
+
+  .modal-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 6px;
+  }
+
+  .modal input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    padding: 9px 12px;
+    border-radius: 6px;
+    margin-bottom: 14px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .modal input:focus { border-color: var(--accent); }
+
+  .presets {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+
+  .preset-btn {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .preset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .modal-actions { display: flex; gap: 8px; }
+
+  .btn {
+    flex: 1;
+    padding: 9px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    transition: opacity 0.15s;
+  }
+
+  .btn:hover { opacity: 0.85; }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-secondary { background: var(--bg); border: 1px solid var(--border); color: var(--text-secondary); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 1100px) {
+    .layout { grid-template-columns: 1fr 1fr; }
+    .col-mid { grid-column: 1 / -1; }
+  }
+
+  @media (max-width: 680px) {
+    .layout { grid-template-columns: 1fr; }
+    .col-left, .col-mid, .col-right { grid-column: 1; }
+  }
+</style>
+</head>
+<body>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="wsModal">
+  <div class="modal">
+    <h2>Connect to Real Drone / SITL</h2>
+    <p>Start <code>mavlink_bridge.py</code> on your machine, then enter the WebSocket address below.</p>
+
+    <div class="modal-label">Quick Presets</div>
+    <div class="presets">
+      <button class="preset-btn" onclick="setPreset('ws://localhost:8765')">SITL Local</button>
+      <button class="preset-btn" onclick="setPreset('ws://192.168.1.100:8765')">Drone Wi-Fi</button>
+      <button class="preset-btn" onclick="setPreset('ws://192.168.10.1:8765')">Tello</button>
+    </div>
+
+    <div class="modal-label">WebSocket Address</div>
+    <input type="text" id="wsUrl" value="ws://localhost:8765" />
+
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="connectWS()">Connect</button>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2L8 6H4v4l-2 2 2 2v4h4l4 4 4-4h4v-4l2-2-2-2V6h-4L12 2zm0 7a3 3 0 110 6 3 3 0 010-6z"/></svg>
+    </div>
+    <div>
+      <span class="logo-text">Drone Simulator Data</span>
+      <span class="logo-sub">Telemetry Dashboard</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="status-pill" id="statusPill">
+      <div class="status-dot"></div>
+      <span id="statusLabel">Simulator Active</span>
+    </div>
+    <div class="source-toggle">
+      <button class="source-btn active" onclick="setSource('sim')">Simulator</button>
+      <button class="source-btn" onclick="setSource('real')">Live Drone</button>
+    </div>
+    <div class="sys-time" id="sysTime">--:--:--</div>
+  </div>
+</header>
+
+<!-- MAIN LAYOUT -->
+<div class="layout">
+
+  <!-- ALERT -->
+  <div class="alert-bar" id="alertBar">
+    ⚠ <span id="alertMsg">Critical battery — immediate return recommended.</span>
+  </div>
+
+  <!-- LEFT COLUMN -->
+  <div class="col-left" style="display:flex;flex-direction:column;gap:12px;">
+
+    <!-- GPS -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">GPS Position</span>
+        <span class="badge green" id="gpsTag">3D Fix</span>
+      </div>
+      <div class="gps-grid">
+        <div class="gps-field">
+          <div class="field-label">Latitude</div>
+          <div class="field-value" id="gpsLat">45.464211</div>
+        </div>
+        <div class="gps-field">
+          <div class="field-label">Longitude</div>
+          <div class="field-value" id="gpsLon">9.189981</div>
+        </div>
+        <div class="gps-field" style="grid-column:1/-1;">
+          <div class="field-label">Altitude (m)</div>
+          <div class="field-value large" id="gpsAlt">0.0</div>
+        </div>
+      </div>
+      <div class="gps-meta">
+        <span>Satellites: <span id="satCount">8</span></span>
+        <span>HDOP: <span id="hdop">1.2</span></span>
+        <span>Ground Speed: <span id="gpsSpeed">0.0</span> m/s</span>
+      </div>
+    </div>
+
+    <!-- BATTERY -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Battery</span>
+        <span class="badge green" id="batBadge">Good</span>
+      </div>
+      <div class="bat-body">
+        <div class="bat-pct-row">
+          <div class="bat-pct" id="batPct">85<span style="font-size:16px;color:var(--text-muted)">%</span></div>
+          <div class="bat-pct-label">Estimated remaining</div>
+        </div>
+        <div class="bat-track">
+          <div class="bat-fill" id="batFill" style="width:85%"></div>
+        </div>
+        <div class="bat-stats">
+          <div class="bat-stat">
+            <div class="field-label">Voltage</div>
+            <div class="field-value" id="batVolt">12.6 V</div>
+          </div>
+          <div class="bat-stat">
+            <div class="field-label">Current</div>
+            <div class="field-value" id="batCurr">4.2 A</div>
+          </div>
+          <div class="bat-stat">
+            <div class="field-label">Est. Flight Time</div>
+            <div class="field-value" id="batTime">~8 min</div>
+          </div>
+          <div class="bat-stat">
+            <div class="field-label">Status</div>
+            <div class="field-value" id="batStatus" style="color:var(--green)">Normal</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VELOCITY -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Velocity</span>
+        <span class="badge">m/s</span>
+      </div>
+      <div class="vel-body">
+        <div class="vel-row">
+          <span class="vel-label">Vx</span>
+          <div class="vel-track"><div class="vel-fill" id="barVx"></div></div>
+          <span class="vel-val" id="valVx">0.0</span>
+        </div>
+        <div class="vel-row">
+          <span class="vel-label">Vy</span>
+          <div class="vel-track"><div class="vel-fill vy" id="barVy"></div></div>
+          <span class="vel-val" id="valVy">0.0</span>
+        </div>
+        <div class="vel-row">
+          <span class="vel-label">Vz</span>
+          <div class="vel-track"><div class="vel-fill vz" id="barVz"></div></div>
+          <span class="vel-val" id="valVz">0.0</span>
+        </div>
+        <div class="vel-total">
+          <span>Total Speed</span>
+          <span class="vel-total-val" id="velTotal">0.0 m/s</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MIDDLE COLUMN -->
+  <div class="col-mid" style="display:flex;flex-direction:column;gap:12px;">
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Live Position Map</span>
+        <span class="badge green">GPS Lock</span>
+      </div>
+      <div class="map-wrap">
+        <canvas id="map"></canvas>
+        <div class="map-label">10 m grid</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Altitude History</span>
+        <span class="badge">Last 60 s</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="altChart"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div class="col-right" style="display:flex;flex-direction:column;gap:12px;">
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Artificial Horizon</span>
+      </div>
+      <div class="horizon-wrap">
+        <canvas id="horizon" width="200" height="200"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Attitude</span>
+        <span class="badge">IMU</span>
+      </div>
+      <div class="att-body">
+        <div class="att-row">
+          <span class="att-label">Roll</span>
+          <div class="att-track"><div class="att-fill" id="barRoll"></div></div>
+          <span class="att-val" id="valRoll">0.0°</span>
+        </div>
+        <div class="att-row">
+          <span class="att-label">Pitch</span>
+          <div class="att-track"><div class="att-fill pitch" id="barPitch"></div></div>
+          <span class="att-val" id="valPitch">0.0°</span>
+        </div>
+        <div class="att-row">
+          <span class="att-label">Yaw</span>
+          <div class="att-track"><div class="att-fill yaw" id="barYaw"></div></div>
+          <span class="att-val" id="valYaw">0°</span>
+        </div>
+        <div class="heading-row">
+          <span>Heading</span>
+          <span class="heading-val" id="heading">000°</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">System Status</span>
+      </div>
+      <div class="sys-body">
+        <div class="sys-row">
+          <span class="sys-key">RC Signal</span>
+          <div class="signal-bars" id="signalBars">
+            <div class="signal-bar" style="height:4px"></div>
+            <div class="signal-bar" style="height:7px"></div>
+            <div class="signal-bar" style="height:10px"></div>
+            <div class="signal-bar" style="height:13px"></div>
+          </div>
+        </div>
+        <div class="sys-row">
+          <span class="sys-key">Flight Mode</span>
+          <span class="sys-val accent" id="flightMode">STABILIZE</span>
+        </div>
+        <div class="sys-row">
+          <span class="sys-key">Arm Status</span>
+          <span class="sys-val armed" id="armStatus">ARMED</span>
+        </div>
+        <div class="sys-row">
+          <span class="sys-key">Uptime</span>
+          <span class="sys-val" id="uptime">00:00:00</span>
+        </div>
+        <div class="sys-row">
+          <span class="sys-key">WS Latency</span>
+          <span class="sys-val" id="latency">—</span>
+        </div>
+        <div class="sys-row">
+          <span class="sys-key">Dist. from Home</span>
+          <span class="sys-val" id="distHome">0.0 m</span>
+        </div>
+        <div class="sys-row">
+          <span class="sys-key">Max Altitude</span>
+          <span class="sys-val" id="maxAlt">0.0 m</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="statusbar">
+    <div class="sb-item">Source: <span class="sb-val" id="sbSrc">Simulator</span></div>
+    <div class="sb-sep"></div>
+    <div class="sb-item">Protocol: <span class="sb-val" id="sbProto">Internal</span></div>
+    <div class="sb-sep"></div>
+    <div class="sb-item">Packets RX: <span class="sb-val" id="pktRx">—</span></div>
+    <div class="sb-sep"></div>
+    <div class="sb-item">Update Rate: <span class="sb-val">20 Hz</span></div>
+    <div style="margin-left:auto;font-size:11px;color:var(--text-muted);">
+      Drone Simulator Data — v2.1
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ================================================================
+// STATE
+// ================================================================
+const state = {
+  lat: 45.464211, lon: 9.189981, alt: 0, relative_alt: 0,
+  vx: 0, vy: 0, vz: 0,
+  roll: 0, pitch: 0, yaw: 0,
+  battery_pct: 85, voltage: 12.6, current: 4.2,
+  satellites: 8, hdop: 1.2,
+  flight_mode: 'STABILIZE', armed: true, signal: 100,
+  source: 'sim',
+};
+
+const altHistory = new Array(60).fill(0);
+const trailPoints = [];
+let simTime = 0;
+let startTime = Date.now();
+let maxAlt = 0;
+const homeLat = 45.464211;
+const homeLon = 9.189981;
+
+let ws = null;
+let wsConnected = false;
+let pktCount = 0;
+let wsLatency = 0;
+let lastPingTime = 0;
+
+// ================================================================
+// SIMULATOR
+// ================================================================
+function simulateStep() {
+  simTime += 0.05;
+  const t = simTime;
+  state.alt = Math.max(0, 20 + 15 * Math.sin(t * 0.3) + 5 * Math.sin(t * 0.7));
+  state.relative_alt = state.alt;
+  state.vx = 3 * Math.sin(t * 0.4) + Math.sin(t * 1.1) * 1.5;
+  state.vy = 2 * Math.cos(t * 0.35) + Math.cos(t * 0.9) * 1.2;
+  state.vz = 1.5 * Math.sin(t * 0.6);
+  state.roll = 15 * Math.sin(t * 0.5) + 5 * Math.sin(t * 1.3);
+  state.pitch = 10 * Math.sin(t * 0.4) + 3 * Math.cos(t * 1.1);
+  state.yaw = (t * 20) % 360;
+  state.lat = homeLat + 0.0001 * Math.sin(t * 0.2);
+  state.lon = homeLon + 0.0001 * Math.cos(t * 0.2);
+  state.battery_pct = Math.max(5, 85 - simTime * 0.06);
+  state.voltage = 9 + (state.battery_pct / 100) * 3.6;
+  state.current = 4.2 + Math.random() * 0.5;
+  state.satellites = 8 + Math.floor(Math.random() * 3);
+  state.hdop = 0.9 + Math.random() * 0.4;
+  state.flight_mode = 'STABILIZE';
+  state.armed = true;
+  state.signal = 95 + Math.floor(Math.random() * 5);
+}
+
+// ================================================================
+// WEBSOCKET
+// ================================================================
+function connectWS() {
+  const url = document.getElementById('wsUrl').value.trim();
+  closeModal();
+  if (ws) { ws.close(); ws = null; }
+  setStatus('warn', 'Connecting...');
+  ws = new WebSocket(url);
+  ws.onopen = () => {
+    wsConnected = true;
+    setStatus('ok', 'Drone Connected');
+    document.getElementById('sbProto').textContent = 'MAVLink / WebSocket';
+    pktCount = 0;
+  };
+  ws.onmessage = (e) => {
+    try {
+      Object.assign(state, JSON.parse(e.data));
+      pktCount++;
+      document.getElementById('pktRx').textContent = pktCount;
+      wsLatency = Date.now() - lastPingTime;
+    } catch {}
+  };
+  ws.onerror = () => { wsConnected = false; setStatus('error', 'Connection Error'); };
+  ws.onclose = () => {
+    wsConnected = false;
+    if (state.source === 'real') {
+      setStatus('error', 'Disconnected — retrying...');
+      setTimeout(() => { if (state.source === 'real') connectWS(); }, 3000);
+    }
+  };
+  setInterval(() => {
+    if (ws && ws.readyState === WebSocket.OPEN) lastPingTime = Date.now();
+  }, 2000);
+}
+
+function setStatus(type, label) {
+  const pill = document.getElementById('statusPill');
+  const lbl = document.getElementById('statusLabel');
+  pill.className = 'status-pill' + (type === 'warn' ? ' warn' : type === 'error' ? ' error' : '');
+  lbl.textContent = label;
+}
+
+function setSource(src) {
+  state.source = src;
+  document.querySelectorAll('.source-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.source-btn[onclick="setSource('${src}')"]`).classList.add('active');
+  document.getElementById('sbSrc').textContent = src === 'sim' ? 'Simulator' : 'Live Drone';
+  if (src === 'real') {
+    document.getElementById('wsModal').classList.add('visible');
+  } else {
+    if (ws) { ws.close(); ws = null; wsConnected = false; }
+    setStatus('ok', 'Simulator Active');
+    document.getElementById('sbProto').textContent = 'Internal';
+    simTime = 0; startTime = Date.now(); maxAlt = 0;
+  }
+}
+
+function setPreset(url) { document.getElementById('wsUrl').value = url; }
+function closeModal() { document.getElementById('wsModal').classList.remove('visible'); }
+
+// ================================================================
+// UI UPDATE
+// ================================================================
+function updateUI() {
+  // GPS
+  document.getElementById('gpsLat').textContent = state.lat.toFixed(6);
+  document.getElementById('gpsLon').textContent = state.lon.toFixed(6);
+  document.getElementById('gpsAlt').textContent = (state.relative_alt || state.alt).toFixed(1);
+  document.getElementById('gpsSpeed').textContent = Math.sqrt(state.vx**2 + state.vy**2).toFixed(1);
+  document.getElementById('satCount').textContent = state.satellites || '—';
+  document.getElementById('hdop').textContent = state.hdop ? state.hdop.toFixed(1) : '—';
+
+  // Battery
+  const bpct = Math.round(state.battery_pct);
+  const batFill = document.getElementById('batFill');
+  const batBadge = document.getElementById('batBadge');
+  const batStatus = document.getElementById('batStatus');
+  document.getElementById('batPct').innerHTML = bpct + '<span style="font-size:16px;color:var(--text-muted)">%</span>';
+  batFill.style.width = bpct + '%';
+  document.getElementById('batVolt').textContent = (state.voltage || 0).toFixed(1) + ' V';
+  document.getElementById('batCurr').textContent = (state.current || 0).toFixed(1) + ' A';
+  document.getElementById('batTime').textContent = '~' + Math.max(0, Math.round((bpct/100)*12)) + ' min';
+
+  if (bpct > 50) {
+    batFill.style.background = 'var(--green)';
+    batBadge.className = 'badge green'; batBadge.textContent = 'Good';
+    batStatus.style.color = 'var(--green)'; batStatus.textContent = 'Normal';
+  } else if (bpct > 20) {
+    batFill.style.background = 'var(--amber)';
+    batBadge.className = 'badge amber'; batBadge.textContent = 'Low';
+    batStatus.style.color = 'var(--amber)'; batStatus.textContent = 'Low';
+  } else {
+    batFill.style.background = 'var(--red)';
+    batBadge.className = 'badge red'; batBadge.textContent = 'Critical';
+    batStatus.style.color = 'var(--red)'; batStatus.textContent = 'Critical';
+  }
+
+  // Alert
+  const alertBar = document.getElementById('alertBar');
+  bpct < 20 ? alertBar.classList.add('visible') : alertBar.classList.remove('visible');
+  document.getElementById('alertMsg').textContent = `Battery critical at ${bpct}% — immediate return recommended.`;
+
+  // Velocity
+  const maxV = 8;
+  function setVBar(id, val) {
+    const bar = document.getElementById(id);
+    const pct = Math.min(Math.abs(val)/maxV,1)*50;
+    if(val>=0){bar.style.left='50%';bar.style.width=pct+'%';}
+    else{bar.style.left=(50-pct)+'%';bar.style.width=pct+'%';}
+  }
+  setVBar('barVx', state.vx); setVBar('barVy', state.vy); setVBar('barVz', state.vz);
+  document.getElementById('valVx').textContent = state.vx.toFixed(1) + ' m/s';
+  document.getElementById('valVy').textContent = state.vy.toFixed(1) + ' m/s';
+  document.getElementById('valVz').textContent = state.vz.toFixed(1) + ' m/s';
+  document.getElementById('velTotal').textContent = Math.sqrt(state.vx**2+state.vy**2+state.vz**2).toFixed(1) + ' m/s';
+
+  // Attitude
+  function setABar(id, val, range) {
+    const bar = document.getElementById(id);
+    const pct = Math.min(Math.abs(val)/range,1)*50;
+    if(val>=0){bar.style.left='50%';bar.style.width=pct+'%';}
+    else{bar.style.left=(50-pct)+'%';bar.style.width=pct+'%';}
+  }
+  setABar('barRoll', state.roll, 45);
+  setABar('barPitch', state.pitch, 45);
+  const yaw = ((state.yaw%360)+360)%360;
+  document.getElementById('barYaw').style.left='0%';
+  document.getElementById('barYaw').style.width=(yaw/360*100)+'%';
+  document.getElementById('valRoll').textContent = state.roll.toFixed(1)+'°';
+  document.getElementById('valPitch').textContent = state.pitch.toFixed(1)+'°';
+  document.getElementById('valYaw').textContent = yaw.toFixed(0)+'°';
+  document.getElementById('heading').textContent = String(Math.round(yaw)).padStart(3,'0')+'°';
+
+  // System
+  const uptSec = Math.floor((Date.now()-startTime)/1000);
+  document.getElementById('uptime').textContent = new Date(uptSec*1000).toISOString().substr(11,8);
+  document.getElementById('flightMode').textContent = state.flight_mode || '—';
+  const armEl = document.getElementById('armStatus');
+  armEl.textContent = state.armed ? 'ARMED' : 'DISARMED';
+  armEl.className = 'sys-val ' + (state.armed ? 'armed' : 'disarmed');
+  document.getElementById('latency').textContent = state.source==='real' ? wsLatency+'ms' : '—';
+  document.getElementById('pktRx').textContent = state.source==='real' ? pktCount : '—';
+
+  if(state.alt>maxAlt) maxAlt=state.alt;
+  document.getElementById('maxAlt').textContent = maxAlt.toFixed(1)+' m';
+  const dist = Math.sqrt(((state.lat-homeLat)*111320)**2+((state.lon-homeLon)*111320*Math.cos(state.lat*Math.PI/180))**2);
+  document.getElementById('distHome').textContent = dist.toFixed(1)+' m';
+
+  const sigLevel = Math.ceil((state.signal/100)*4);
+  document.querySelectorAll('.signal-bar').forEach((b,i)=>b.classList.toggle('active',i<sigLevel));
+
+  document.getElementById('sysTime').textContent = new Date().toLocaleTimeString('en-GB');
+
+  // Trail
+  trailPoints.push({lat:state.lat,lon:state.lon});
+  if(trailPoints.length>200) trailPoints.shift();
+  altHistory.shift(); altHistory.push(state.alt);
+}
+
+// ================================================================
+// ARTIFICIAL HORIZON
+// ================================================================
+function drawHorizon() {
+  const canvas = document.getElementById('horizon');
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  const cx = w/2, cy = h/2, r = w/2-3;
+  ctx.clearRect(0,0,w,h);
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.clip();
+  const roll = state.roll*Math.PI/180;
+  const pitchOffset = (state.pitch/45)*r*0.8;
+  ctx.save();
+  ctx.translate(cx, cy+pitchOffset); ctx.rotate(roll);
+  // Sky
+  ctx.fillStyle='#bfdbfe'; ctx.fillRect(-w,-h,w*2,h*2);
+  // Ground
+  ctx.fillStyle='#d6b896'; ctx.fillRect(-w,0,w*2,h*2);
+  // Horizon
+  ctx.strokeStyle='rgba(255,255,255,0.8)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(-w,0); ctx.lineTo(w,0); ctx.stroke();
+  // Pitch ladder
+  ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=1;
+  ctx.fillStyle='rgba(30,30,30,0.6)'; ctx.font='9px DM Mono';
+  for(let i=-4;i<=4;i++){
+    if(i===0) continue;
+    const y=i*(r*0.8/4); const lw=Math.abs(i)%2===0?36:18;
+    ctx.beginPath(); ctx.moveTo(-lw,y); ctx.lineTo(lw,y); ctx.stroke();
+    if(Math.abs(i)%2===0) ctx.fillText((-i*10)+'°',lw+4,y+3);
+  }
+  ctx.restore();
+  // Fixed reticle
+  ctx.strokeStyle='rgba(30,30,30,0.8)'; ctx.lineWidth=1.5;
+  ctx.beginPath();
+  ctx.moveTo(cx-28,cy); ctx.lineTo(cx-8,cy);
+  ctx.moveTo(cx+8,cy); ctx.lineTo(cx+28,cy);
+  ctx.moveTo(cx,cy-6); ctx.lineTo(cx,cy+6);
+  ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx,cy,4,0,Math.PI*2); ctx.stroke();
+  ctx.restore();
+  // Border
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+  ctx.strokeStyle=getComputedStyle(document.documentElement).getPropertyValue('--border').trim();
+  ctx.lineWidth=1; ctx.stroke();
+}
+
+// ================================================================
+// MAP
+// ================================================================
+function drawMap() {
+  const canvas = document.getElementById('map');
+  const ctx = canvas.getContext('2d');
+  const dpr = devicePixelRatio;
+  canvas.width = canvas.offsetWidth*dpr;
+  canvas.height = canvas.offsetHeight*dpr;
+  const w = canvas.width, h = canvas.height;
+  const scale = 500000;
+  const cx = w/2, cy = h/2;
+  function toXY(lat,lon){
+    return{x:cx+(lon-homeLon)*scale*Math.cos(homeLat*Math.PI/180),y:cy-(lat-homeLat)*scale};
+  }
+  // Background
+  ctx.fillStyle='#f8f8f6'; ctx.fillRect(0,0,w,h);
+  // Grid
+  ctx.strokeStyle='rgba(200,200,196,0.7)'; ctx.lineWidth=1;
+  const gs=scale*0.0001;
+  for(let x=cx%gs;x<w;x+=gs){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
+  for(let y=cy%gs;y<h;y+=gs){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+  // Home
+  const home=toXY(homeLat,homeLon);
+  ctx.fillStyle='rgba(22,163,74,0.15)';
+  ctx.beginPath();ctx.arc(home.x,home.y,10,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#16a34a';
+  ctx.beginPath();ctx.arc(home.x,home.y,4,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#16a34a'; ctx.font=`${9*dpr}px DM Sans`;
+  ctx.fillText('HOME',home.x+10,home.y+4);
+  // Trail
+  if(trailPoints.length>1){
+    ctx.strokeStyle='rgba(29,78,216,0.25)'; ctx.lineWidth=2;
+    ctx.beginPath();
+    const p0=toXY(trailPoints[0].lat,trailPoints[0].lon); ctx.moveTo(p0.x,p0.y);
+    trailPoints.forEach(pt=>{const p=toXY(pt.lat,pt.lon);ctx.lineTo(p.x,p.y);});
+    ctx.stroke();
+  }
+  // Drone
+  const pos=toXY(state.lat,state.lon);
+  const yr=state.yaw*Math.PI/180;
+  ctx.save(); ctx.translate(pos.x,pos.y); ctx.rotate(yr);
+  ctx.fillStyle='#1d4ed8';
+  ctx.beginPath();ctx.moveTo(0,-11);ctx.lineTo(6,8);ctx.lineTo(0,4);ctx.lineTo(-6,8);ctx.closePath();ctx.fill();
+  ctx.restore();
+  ctx.fillStyle='#1d4ed8'; ctx.font=`${8.5*dpr}px DM Mono`;
+  ctx.fillText(`ALT: ${state.alt.toFixed(1)} m`,pos.x+12,pos.y-8);
+  // Home line
+  ctx.strokeStyle='rgba(22,163,74,0.2)'; ctx.lineWidth=1; ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(home.x,home.y);ctx.lineTo(pos.x,pos.y);ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+// ================================================================
+// ALT CHART
+// ================================================================
+function drawAltChart() {
+  const canvas = document.getElementById('altChart');
+  const ctx = canvas.getContext('2d');
+  const dpr = devicePixelRatio;
+  canvas.width = canvas.offsetWidth*dpr;
+  canvas.height = canvas.offsetHeight*dpr;
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0,0,w,h);
+  const maxVal = Math.max(...altHistory,1);
+  const pad = {t:8,b:18,l:28,r:8};
+  const cw=w-pad.l-pad.r, ch=h-pad.t-pad.b;
+  // Grid
+  ctx.strokeStyle='rgba(200,200,196,0.7)'; ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    const y=pad.t+(ch/4)*i;
+    ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();
+    ctx.fillStyle='#a0a09a'; ctx.font=`${7.5*dpr}px DM Mono`;
+    ctx.fillText((maxVal*(1-i/4)).toFixed(0),0,y+3);
+  }
+  // Fill
+  const grad=ctx.createLinearGradient(0,pad.t,0,h-pad.b);
+  grad.addColorStop(0,'rgba(29,78,216,0.12)'); grad.addColorStop(1,'rgba(29,78,216,0)');
+  ctx.beginPath();
+  altHistory.forEach((v,i)=>{
+    const x=pad.l+(i/(altHistory.length-1))*cw;
+    const y=pad.t+ch*(1-v/maxVal);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.lineTo(w-pad.r,h-pad.b);ctx.lineTo(pad.l,h-pad.b);ctx.closePath();
+  ctx.fillStyle=grad;ctx.fill();
+  // Line
+  ctx.strokeStyle='#1d4ed8'; ctx.lineWidth=1.5;
+  ctx.beginPath();
+  altHistory.forEach((v,i)=>{
+    const x=pad.l+(i/(altHistory.length-1))*cw;
+    const y=pad.t+ch*(1-v/maxVal);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+  // Dot
+  const lx=pad.l+cw, ly=pad.t+ch*(1-altHistory[59]/maxVal);
+  ctx.fillStyle='#1d4ed8'; ctx.beginPath();ctx.arc(lx,ly,3,0,Math.PI*2);ctx.fill();
+}
+
+// ================================================================
+// MAIN LOOP
+// ================================================================
+function loop() {
+  if(state.source==='sim') simulateStep();
+  updateUI();
+  drawHorizon();
+  drawMap();
+  drawAltChart();
+}
+
+setInterval(loop,50);
+loop();
+</script>
+</body>
+</html>
